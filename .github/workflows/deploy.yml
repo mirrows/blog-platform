@@ -1,0 +1,161 @@
+name: Deploy Blog Platform
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ============================================
+  # 前端构建与部署
+  # ============================================
+  frontend:
+    name: Build and Deploy Frontend
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'client/package-lock.json'
+      
+      - name: Install dependencies
+        run: |
+          cd client
+          npm ci
+      
+      - name: Build frontend (SSG)
+        run: |
+          cd client
+          npm run generate
+        env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          NUXT_PUBLIC_API_BASE: ${{ secrets.API_BASE_URL }}
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: client/.output/public/
+          retention-days: 1
+
+  # ============================================
+  # 后端构建与部署
+  # ============================================
+  backend:
+    name: Build and Deploy Backend
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'server/package-lock.json'
+      
+      - name: Install dependencies
+        run: |
+          cd server
+          npm ci --production
+      
+      - name: Build Docker image
+        run: |
+          cd server
+          docker build -t blog-server:${{ github.sha }} .
+          docker tag blog-server:${{ github.sha }} blog-server:latest
+      
+      - name: Save Docker image
+        run: |
+          docker save blog-server:latest | gzip > blog-server.tar.gz
+      
+      - name: Upload Docker image
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-image
+          path: blog-server.tar.gz
+          retention-days: 1
+
+  # ============================================
+  # 部署到服务器
+  # ============================================
+  deploy:
+    name: Deploy to Production Server
+    needs: [frontend, backend]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download frontend artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: ./client/.output/public
+      
+      - name: Download backend artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: server-image
+          path: .
+      
+      - name: Deploy via SSH
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          port: ${{ secrets.DEPLOY_PORT || '22' }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          source: |
+            ./client/.output/public/*
+            ./blog-server.tar.gz
+            ./docker-compose.yml
+            ./nginx.conf
+          target: ${{ secrets.DEPLOY_PATH }}
+          strip_components: 0
+      
+      - name: Execute remote deploy commands
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          port: ${{ secrets.DEPLOY_PORT || '22' }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            cd ${{ secrets.DEPLOY_PATH }}
+            
+            # 加载 Docker 镜像
+            docker load < blog-server.tar.gz
+            rm blog-server.tar.gz
+            
+            # 创建 .env 文件
+            cat > .env << EOF
+            DB_PASS=${{ secrets.DB_PASS }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_USER=${{ secrets.DB_USER }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            FRONTEND_DOMAIN=${{ secrets.FRONTEND_DOMAIN }}
+            BACKEND_DOMAIN=${{ secrets.BACKEND_DOMAIN }}
+            EOF
+            
+            # 重启服务
+            docker-compose down
+            docker-compose up -d
+            
+            # 清理旧镜像
+            docker image prune -f
+      
+      - name: Cleanup artifacts
+        uses: actions/upload-artifact/cleanup@v4
+        if: always()
