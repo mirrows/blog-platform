@@ -6,6 +6,7 @@ export default defineNuxtConfig({
   // Modules
   modules: [
     '@pinia/nuxt',
+    '@element-plus/nuxt'
   ],
 
   // CSS 全局引入
