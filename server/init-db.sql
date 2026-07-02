@@ -149,8 +149,9 @@ CREATE TABLE IF NOT EXISTS `files` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 插入默认管理员账号（密码: admin123）
-INSERT INTO `users` (`username`, `email`, `password`, `role`, `created_at`, `updated_at`)
-VALUES ('admin', 'admin@example.com', '$2a$10$rQ1H8qF3wE5zL9vB2cD6uO7pX8yZ1aB3cD4eF5gH6iJ7kL8mN9oP0q', 'admin', NOW(), NOW())
+-- 注意：密码哈希由 init-db.js 动态生成，这里使用占位符
+INSERT INTO `users` (`username`, `email`, `password`, `role`, `status`, `created_at`, `updated_at`)
+VALUES ('admin', 'admin@example.com', 'temp_password_hash', 'admin', 'active', NOW(), NOW())
 ON DUPLICATE KEY UPDATE `username` = `username`;
 
 -- 插入示例分类

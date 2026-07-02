@@ -1,6 +1,7 @@
 const mysql = require('mysql2/promise')
 const fs = require('fs')
 const path = require('path')
+const bcrypt = require('bcryptjs')
 
 async function initDatabase() {
   const config = {
@@ -28,8 +29,42 @@ async function initDatabase() {
     await connection.query(sql)
     console.log('✅ 数据库和表结构创建成功')
 
+    // 检查是否需要创建或更新默认管理员账号
+    const [adminUsers] = await connection.query('SELECT * FROM users WHERE username = ?', [
+      process.env.ADMIN_USERNAME || 'admin'
+    ])
+
+    const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'admin123', 10)
+    const adminUsername = process.env.ADMIN_USERNAME || 'admin'
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com'
+
+    if (adminUsers.length === 0) {
+      // 管理员不存在，创建默认管理员
+      await connection.query(
+        'INSERT INTO users (username, email, password, role, status) VALUES (?, ?, ?, ?, ?)',
+        [
+          adminUsername,
+          adminEmail,
+          hashedPassword,
+          'admin',
+          1
+        ]
+      )
+      console.log('✅ 默认管理员账号创建成功')
+      console.log(`   用户名：${adminUsername}`)
+      console.log(`   密码：${process.env.ADMIN_PASSWORD || 'admin123'}`)
+    } else {
+      // 管理员已存在，更新密码以确保密码哈希正确
+      await connection.query(
+        'UPDATE users SET password = ?, email = ? WHERE username = ?',
+        [hashedPassword, adminEmail, adminUsername]
+      )
+      console.log('✅ 管理员账号已存在，密码已更新')
+      console.log(`   用户名：${adminUsername}`)
+      console.log(`   密码：${process.env.ADMIN_PASSWORD || 'admin123'}`)
+    }
+
     console.log('\n🎉 数据库初始化完成！')
-    console.log('默认管理员账号：admin / admin123')
 
   } catch (error) {
     console.error('❌ 初始化失败:', error.message)

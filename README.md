@@ -78,11 +78,31 @@ blog-platform/
 ## 🚀 快速开始
 
 ### 前置要求
-- Node.js 18+
+- Node.js 22.12+ (推荐 22.x LTS)
 - MySQL 8.0+
-- Docker (可选)
+- npm 或 yarn
 
-### 1. 后端启动
+### 1. 克隆项目
+
+```bash
+git clone <your-repo-url>
+cd blog-platform
+```
+
+### 2. 数据库准备
+
+确保 MySQL 服务已启动，并创建数据库：
+
+```bash
+# 方式1：使用初始化脚本（推荐）
+cd server
+node scripts/init-db.js
+
+# 方式2：手动执行 SQL
+mysql -u root -p < server/init-db.sql
+```
+
+### 3. 配置后端
 
 ```bash
 # 进入后端目录
@@ -91,17 +111,20 @@ cd server
 # 安装依赖
 npm install
 
-# 配置环境变量（复制并修改）
-cp .env.example .env
+# 配置环境变量
+# 编辑 .env 文件，修改数据库连接信息和管理员账号密码
+# 如果使用默认配置，无需修改
 
 # 启动开发服务器
 npm run dev
 ```
 
-### 2. 前端启动
+后端服务将运行在 `http://localhost:3001`
+
+### 4. 配置前端
 
 ```bash
-# 进入前端目录
+# 进入前端目录（新终端）
 cd client
 
 # 安装依赖
@@ -111,32 +134,119 @@ npm install
 npm run dev
 ```
 
-### 3. Docker 部署
+前端服务将运行在 `http://localhost:3000`
+
+### 5. 访问应用
+
+- 前端首页：http://localhost:3000
+- 后端 API：http://localhost:3001/api
+- 默认管理员账号：`admin` / `admin123`（可在 `.env` 中修改）
+
+### 6. Docker 部署（可选）
 
 ```bash
 # 在项目根目录执行
 docker-compose up -d
 ```
 
-## 🔧 环境变量
+## 📝 首次使用指南
 
-### 后端 (.env)
+### 1. 登录后台
+- 访问 http://localhost:3000/login
+- 使用默认管理员账号登录：`admin` / `admin123`
+
+### 2. 创建第一篇文章
+- 登录后进入后台（点击右上角用户名 → 后台管理）
+- 点击"文章管理" → "新建文章"
+- 填写标题、内容，选择分类和标签
+- 点击"发布"
+
+### 3. 配置说明（重要）
+
+**修改管理员密码**：
+1. 编辑 `server/.env` 文件
+2. 修改 `ADMIN_PASSWORD` 的值
+3. 重启后端服务
+
+**注意**：如果数据库中已存在该管理员账号，修改 `.env` 不会生效，需要直接修改数据库或删除账号后重启。
+
+## 🔧 环境变量配置
+
+### 后端环境变量 (server/.env)
+
 ```env
-PORT=3000
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=blog
-DB_USER=root
-DB_PASS=your-password
-JWT_SECRET=your-secure-jwt-secret-key
-FRONTEND_DOMAIN=https://your-domain.com
-BACKEND_DOMAIN=https://api.your-domain.com
+# ============================================
+# 数据库配置
+# ============================================
+DB_HOST=localhost              # 数据库主机
+DB_PORT=3306                   # 数据库端口
+DB_NAME=blog                   # 数据库名称
+DB_USER=root                   # 数据库用户名
+DB_PASS=root123                # 数据库密码
+
+# ============================================
+# JWT 配置
+# ============================================
+JWT_SECRET=your-development-jwt-secret-key-change-in-production  # JWT 密钥（生产环境必须修改）
+
+# ============================================
+# 域名配置（预留）
+# ============================================
+FRONTEND_DOMAIN=http://localhost:3000   # 前端域名
+BACKEND_DOMAIN=http://localhost:3001    # 后端域名
+
+# ============================================
+# 服务配置
+# ============================================
+PORT=3001                      # 后端服务端口
+
+# ============================================
+# 默认管理员账号配置
+# ============================================
+ADMIN_USERNAME=admin           # 管理员用户名
+ADMIN_EMAIL=admin@example.com  # 管理员邮箱
+ADMIN_PASSWORD=admin123        # 管理员密码（首次启动时生效）
 ```
 
-### 前端 (.env)
+**说明**：
+- 如果数据库中已存在 `ADMIN_USERNAME` 对应的用户，则跳过创建
+- 如果不存在，则使用配置的账号密码创建管理员账号
+- 密码会自动进行 bcrypt 加密后存储
+
+### 前端环境变量 (client/.env)
+
 ```env
-API_BASE_URL=http://localhost:3000/api
+API_BASE_URL=http://localhost:3001/api  # 后端 API 地址
 ```
+
+## 🔧 常见问题
+
+### Q1: 数据库连接失败
+**A**: 检查以下几点：
+1. MySQL 服务是否已启动
+2. `server/.env` 中的数据库配置是否正确
+3. 数据库 `blog` 是否已创建
+
+### Q2: 端口被占用
+**A**: 修改 `server/.env` 中的 `PORT` 值，或停止占用端口的进程
+
+### Q3: 前端页面报错 `Failed to resolve component: el-form`
+**A**: 这是 Element Plus 组件未注册的问题，请确保：
+1. 已执行 `npm install` 安装所有依赖
+2. 前端依赖版本：Element Plus 2.7.0 + Nuxt 3.12.0
+3. 清除缓存后重启：`rm -rf .nuxt && npm run dev`
+
+### Q4: 如何升级管理员权限
+**A**: 直接修改数据库：
+```sql
+UPDATE users SET role = 'admin' WHERE username = 'your-username';
+```
+
+## 📚 更多文档
+
+- [产品需求文档](docs/PRD.md)
+- [架构设计文档](docs/architecture.md)
+- [变更日志](docs/CHANGELOG.md)
 
 ## 📄 许可证
 
@@ -144,4 +254,4 @@ API_BASE_URL=http://localhost:3000/api
 
 ---
 
-> 更多详情请参阅 [产品需求文档](docs/PRD.md) 和 [架构设计文档](docs/architecture.md)
+> 💡 **提示**：本项目当前版本为单管理员博客系统，仅管理员可以发布和管理文章。
