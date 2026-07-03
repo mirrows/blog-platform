@@ -2,8 +2,8 @@
   <div class="comment-list">
     <!-- 评论表单 -->
     <div class="comment-form">
-      <div class="form-row" v-if="!auth.isLoggedIn.value">
-        <el-input v-model="nickname" placeholder="昵称（选填）" size="small" class="nickname-input" />
+      <div class="form-row" v-if="auth.isLoggedIn.value">
+        <el-input v-model="nickname" placeholder="昵称" size="small" class="nickname-input" />
       </div>
       <el-input
         v-model="content"
@@ -24,8 +24,8 @@
     <div v-if="comments.length > 0" class="comments">
       <div v-for="comment in comments" :key="comment.id" class="comment-item">
         <div class="comment-header">
-          <span class="comment-author">{{ comment.user?.username || comment.nickname || '匿名游客' }}</span>
-          <span class="comment-date">{{ formatDate(comment.created_at) }}</span>
+          <span class="comment-author">{{ comment.nickname || comment.user?.username || '匿名游客' }}</span>
+          <span class="comment-date">{{ formatDate(comment.createdAt) }}</span>
         </div>
         <div class="comment-content">{{ comment.content }}</div>
         <div v-if="comment.replies?.length" class="comment-replies">
@@ -49,13 +49,18 @@ const api = useApi()
 
 const comments = ref<any[]>([])
 const content = ref('')
-const nickname = ref('')
+const nickname = ref('匿名游客')
 const submitting = ref(false)
 
 const formatDate = (date: string) => {
   if (!date) return ''
   const d = new Date(date)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  const hours = String(d.getHours()).padStart(2, '0')
+  const minutes = String(d.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hours}:${minutes}`
 }
 
 const loadComments = async () => {
@@ -71,24 +76,45 @@ const submitComment = async () => {
     return
   }
 
+  // 已登录用户必须输入昵称
+  if (auth.isLoggedIn && !nickname.value.trim()) {
+    ElMessage.warning('请输入昵称')
+    return
+  }
+
   submitting.value = true
   const res = await api.post('/comments', {
     postId: props.postId,
     content: content.value.trim(),
-    nickname: nickname.value.trim() || undefined,
+    nickname: auth.isLoggedIn ? nickname.value.trim() : (nickname.value.trim() || '匿名游客'),
+    userId: auth.isLoggedIn ? auth.user?.id : undefined,
   })
   submitting.value = false
 
   if (res.code === 200) {
     ElMessage.success('评论发表成功，等待审核')
     content.value = ''
-    nickname.value = ''
+    // 如果服务端返回了更新后的用户信息，更新本地状态
+    if (res.data?.user) {
+      auth.user.value = res.data.user
+      if (process.client) {
+        localStorage.setItem('user', JSON.stringify(res.data.user))
+      }
+    }
   } else {
     ElMessage.error(res.message || '评论失败')
   }
 }
 
-onMounted(loadComments)
+onMounted(() => {
+  loadComments()
+  // 初始化昵称 - 延迟执行确保 auth.user 已从 localStorage 恢复
+  setTimeout(() => {
+    if (auth.user.value) {
+      nickname.value = auth.user.value.nickname || auth.user.value.username || '匿名游客'
+    }
+  }, 0)
+})
 </script>
 
 <style scoped lang="scss">

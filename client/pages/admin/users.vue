@@ -8,6 +8,7 @@
       <el-table :data="users" style="width: 100%" v-loading="loading">
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="username" label="用户名" min-width="150" />
+        <el-table-column prop="nickname" label="昵称" min-width="120" />
         <el-table-column prop="email" label="邮箱" min-width="200" />
         <el-table-column prop="role" label="角色" width="100">
           <template #default="{ row }">

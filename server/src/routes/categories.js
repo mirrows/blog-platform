@@ -2,6 +2,8 @@ const Router = require('koa-router')
 const { Category, Post } = require('../models/_associations')
 const { success, fail } = require('../utils/response')
 const { authMiddleware, adminMiddleware } = require('../middleware/auth')
+const sequelize = require('../config/database')
+const xss = require('xss')
 
 const router = new Router({ prefix: '/api' })
 
@@ -9,42 +11,35 @@ const router = new Router({ prefix: '/api' })
 router.get('/categories', async (ctx) => {
   const categories = await Category.findAll({
     order: [['sort_order', 'ASC'], ['name', 'ASC']],
-    include: [{
-      model: Post,
-      as: 'posts',
-      attributes: [],
-      where: { status: 'published' },
-      required: false
-    }]
+    attributes: {
+      include: [
+        [sequelize.literal(`(
+          SELECT COUNT(*) FROM posts
+          WHERE posts.category_id = Category.id
+          AND posts.status = 'published'
+        )`), 'post_count']
+      ]
+    }
   })
 
-  // 添加文章数量
-  const result = categories.map(cat => ({
-    ...cat.toJSON(),
-    post_count: cat.posts?.length || 0
-  }))
-
-  ctx.body = success(result)
+  ctx.body = success(categories)
 })
 
 // 管理员：获取所有分类
 router.get('/admin/categories', authMiddleware(), adminMiddleware, async (ctx) => {
   const categories = await Category.findAll({
     order: [['sort_order', 'ASC']],
-    include: [{
-      model: Post,
-      as: 'posts',
-      attributes: [],
-      required: false
-    }]
+    attributes: {
+      include: [
+        [sequelize.literal(`(
+          SELECT COUNT(*) FROM posts
+          WHERE posts.category_id = Category.id
+        )`), 'post_count']
+      ]
+    }
   })
 
-  const result = categories.map(cat => ({
-    ...cat.toJSON(),
-    post_count: cat.posts?.length || 0
-  }))
-
-  ctx.body = success(result)
+  ctx.body = success(categories)
 })
 
 // 管理员：创建分类
@@ -68,9 +63,9 @@ router.post('/admin/categories', authMiddleware(), adminMiddleware, async (ctx) 
   }
 
   const category = await Category.create({
-    name,
-    slug,
-    description,
+    name: xss(name),
+    slug: xss(slug),
+    description: xss(description),
     sort_order: sortOrder || 0
   })
 
@@ -88,9 +83,9 @@ router.put('/admin/categories/:id', authMiddleware(), adminMiddleware, async (ct
 
   const { name, slug, description, sortOrder } = ctx.request.body
   const updateData = {}
-  if (name !== undefined) updateData.name = name
-  if (slug !== undefined) updateData.slug = slug
-  if (description !== undefined) updateData.description = description
+  if (name !== undefined) updateData.name = xss(name)
+  if (slug !== undefined) updateData.slug = xss(slug)
+  if (description !== undefined) updateData.description = xss(description)
   if (sortOrder !== undefined) updateData.sort_order = sortOrder
 
   await category.update(updateData)

@@ -50,7 +50,7 @@
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button
-              v-if="row.status === 'pending'"
+              v-if="row.status === 'pending' || row.status === 'rejected'"
               type="success"
               link
               @click="approveComment(row.id)"

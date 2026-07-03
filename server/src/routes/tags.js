@@ -2,6 +2,8 @@ const Router = require('koa-router')
 const { Tag, Post } = require('../models/_associations')
 const { success, fail } = require('../utils/response')
 const { authMiddleware, adminMiddleware } = require('../middleware/auth')
+const sequelize = require('../config/database')
+const xss = require('xss')
 
 const router = new Router({ prefix: '/api' })
 
@@ -9,41 +11,37 @@ const router = new Router({ prefix: '/api' })
 router.get('/tags', async (ctx) => {
   const tags = await Tag.findAll({
     order: [['name', 'ASC']],
-    include: [{
-      model: Post,
-      as: 'posts',
-      attributes: [],
-      where: { status: 'published' },
-      required: false
-    }]
+    attributes: {
+      include: [
+        [sequelize.literal(`(
+          SELECT COUNT(*) FROM post_tags pt
+          JOIN posts p ON pt.post_id = p.id
+          WHERE pt.tag_id = Tag.id
+          AND p.status = 'published'
+        )`), 'post_count']
+      ]
+    }
   })
 
-  const result = tags.map(tag => ({
-    ...tag.toJSON(),
-    post_count: tag.posts?.length || 0
-  }))
-
-  ctx.body = success(result)
+  ctx.body = success(tags)
 })
 
 // 管理员：获取所有标签
 router.get('/admin/tags', authMiddleware(), adminMiddleware, async (ctx) => {
   const tags = await Tag.findAll({
     order: [['name', 'ASC']],
-    include: [{
-      model: Post,
-      as: 'posts',
-      attributes: [],
-      required: false
-    }]
+    attributes: {
+      include: [
+        [sequelize.literal(`(
+          SELECT COUNT(*) FROM post_tags pt
+          JOIN posts p ON pt.post_id = p.id
+          WHERE pt.tag_id = Tag.id
+        )`), 'post_count']
+      ]
+    }
   })
 
-  const result = tags.map(tag => ({
-    ...tag.toJSON(),
-    post_count: tag.posts?.length || 0
-  }))
-
-  ctx.body = success(result)
+  ctx.body = success(tags)
 })
 
 // 管理员：创建标签
@@ -66,7 +64,7 @@ router.post('/admin/tags', authMiddleware(), adminMiddleware, async (ctx) => {
     return
   }
 
-  const tag = await Tag.create({ name, slug })
+  const tag = await Tag.create({ name: xss(name), slug: xss(slug) })
   ctx.body = success(tag, '创建成功')
 })
 

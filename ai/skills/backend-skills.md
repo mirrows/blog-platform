@@ -532,7 +532,134 @@ volumes:
 
 ---
 
-## 12. 项目目录结构（后端完成态）
+## 12. 数据库结构变更标准流程
+
+### 12.1 核心理念
+**`init-db.sql` 是数据库结构的唯一真实来源（Single Source of Truth）**
+
+### 12.2 变更 Checklist
+当修改数据库结构（添加/删除/修改字段）时，必须完成以下步骤：
+
+- [ ] **步骤 1**: 更新 Sequelize 模型文件 `server/src/models/xxx.js`
+- [ ] **步骤 2**: 更新 `server/init-db.sql`（CREATE TABLE 语句）
+- [ ] **步骤 3**: 如果已有数据库，创建迁移脚本 `server/tmp_script/migrate-xxx.js`
+- [ ] **步骤 4**: 执行迁移脚本 `node server/tmp_script/migrate-xxx.js`
+- [ ] **步骤 5**: 测试验证功能正常
+
+### 12.3 示例：添加 nickname 字段
+
+**步骤 1**: 更新 Sequelize 模型
+```javascript
+// server/src/models/User.js
+const User = sequelize.define('User', {
+  // ... 其他字段
+  nickname: {
+    type: DataTypes.STRING(50),
+    allowNull: true
+  }
+})
+```
+
+**步骤 2**: 更新 init-db.sql
+```sql
+-- server/init-db.sql
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `username` VARCHAR(50) NOT NULL UNIQUE,
+  `email` VARCHAR(100) NOT NULL UNIQUE,
+  `password` VARCHAR(255) NOT NULL,
+  `avatar` VARCHAR(255) DEFAULT NULL,
+  `bio` TEXT DEFAULT NULL,
+  `nickname` VARCHAR(50) DEFAULT NULL,  -- 新增字段
+  `role` ENUM('admin', 'user') DEFAULT 'user',
+  `status` TINYINT DEFAULT 1,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+**步骤 3**: 创建迁移脚本（仅用于已有数据库）
+```javascript
+// server/tmp_script/migrate-add-nickname.js
+const mysql = require('mysql2/promise')
+const config = require('../src/config')
+
+async function migrate() {
+  const connection = await mysql.createConnection({
+    host: config.database.host,
+    user: config.database.username,
+    password: config.database.password,
+    database: config.database.database
+  })
+
+  await connection.query(`
+    ALTER TABLE users
+    ADD COLUMN nickname VARCHAR(50) DEFAULT NULL COMMENT '用户昵称'
+    AFTER bio
+  `)
+
+  await connection.end()
+  console.log('迁移完成')
+}
+
+migrate()
+```
+
+**步骤 4**: 执行迁移
+```bash
+node server/tmp_script/migrate-add-nickname.js
+```
+
+### 12.4 注意事项
+- `init-db.sql` 用于新数据库初始化，必须保持最新
+- `tmp_script/` 用于已有数据库的迁移，已执行过的脚本可以删除
+- 永远不要直接修改生产数据库结构，始终通过迁移脚本
+
+---
+
+## 13. 安全防护
+
+### 13.1 XSS 防护
+所有用户输入内容必须经过 `xss` 过滤后再存储：
+
+```javascript
+const xss = require('xss')
+
+// 评论内容
+content: xss(content)
+
+// 昵称
+nickname: xss(nickname)
+
+// 文章标题/内容/摘要
+title: xss(title)
+content: xss(content)
+summary: xss(summary)
+
+// 分类/标签名称
+name: xss(name)
+slug: xss(slug)
+description: xss(description)
+```
+
+### 13.2 速率限制
+```javascript
+// src/middleware/rateLimiter.js
+const rateLimit = require('koa-rate-limit')
+
+const limiter = rateLimit({
+  driver: 'memory',
+  db: new Map(),
+  duration: 60 * 1000, // 1分钟
+  max: 100, // 每分钟最多100次请求
+  id: ctx => ctx.ip,
+  headers: true
+})
+```
+
+---
+
+## 14. 项目目录结构（后端完成态）
 
 ```
 server/

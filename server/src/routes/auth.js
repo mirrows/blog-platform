@@ -4,6 +4,7 @@ const config = require('../config')
 const { User } = require('../models/_associations')
 const { success, fail } = require('../utils/response')
 const { authMiddleware } = require('../middleware/auth')
+const xss = require('xss')
 
 const router = new Router({ prefix: '/api/auth' })
 
@@ -32,9 +33,10 @@ router.post('/register', async (ctx) => {
   }
 
   const user = await User.create({
-    username,
-    email,
+    username: xss(username),
+    email: xss(email),
     password,
+    nickname: xss(username),
     role: 'user',
     status: 'active'
   })

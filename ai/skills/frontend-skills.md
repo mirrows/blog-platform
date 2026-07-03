@@ -201,7 +201,7 @@ export const useAuthStore = defineStore('auth', () => {
   
   const isLoggedIn = computed(() => !!token.value)
   const isAdmin = computed(() => user.value?.role === 'admin')
-  
+  console.log(5666, isLoggedIn)
   async function login(username: string, password: string) {
     const { data } = await useFetch('/api/auth/login', {
       method: 'POST',

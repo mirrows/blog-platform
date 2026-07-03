@@ -1,10 +1,12 @@
 /**
  * 认证状态管理
  */
-export const useAuth = () => {
-  const user = ref<any>(null)
-  const token = ref<string>('')
 
+// 模块级变量（单例），确保所有组件共享同一份状态
+const user = ref<any>(null)
+const token = ref<string>('')
+
+export const useAuth = () => {
   const isLoggedIn = computed(() => !!token.value)
   const isAdmin = computed(() => user.value?.role === 'admin')
 

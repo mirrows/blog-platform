@@ -29,7 +29,8 @@ export default defineNuxtConfig({
   // 运行时配置
   runtimeConfig: {
     public: {
-      apiBase: process.env.API_BASE_URL || 'http://localhost:3001/api',
+      apiBase: `${process.env.API_BASE_URL || 'http://localhost:3001'}/api`,
+      backend: process.env.API_BASE_URL || 'http://localhost:3001',
     },
   },
 

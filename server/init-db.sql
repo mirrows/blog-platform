@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS `users` (
   `email` VARCHAR(100) NOT NULL UNIQUE,
   `password` VARCHAR(255) NOT NULL,
   `avatar` VARCHAR(255) DEFAULT NULL,
+  `bio` TEXT DEFAULT NULL,
+  `nickname` VARCHAR(50) DEFAULT NULL,
   `role` ENUM('admin', 'user') DEFAULT 'user',
   `status` TINYINT DEFAULT 1,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,

@@ -3,6 +3,7 @@ const { Comment, Post, User } = require('../models/_associations')
 const { success, fail, successWithPagination } = require('../utils/response')
 const { authMiddleware, adminMiddleware } = require('../middleware/auth')
 const { getClientIp } = require('../utils/ipLocation')
+const xss = require('xss')
 
 const router = new Router({ prefix: '/api' })
 
@@ -47,8 +48,8 @@ router.get('/comments', async (ctx) => {
   })
 })
 
-// 发表评论（公开，游客可评）
-router.post('/comments', async (ctx) => {
+// 发表评论（公开，游客可评，但已登录用户会记录用户信息）
+router.post('/comments', authMiddleware(false), async (ctx) => {
   const { postId, content, nickname, parentId } = ctx.request.body
 
   if (!postId || !content) {
@@ -66,9 +67,16 @@ router.post('/comments', async (ctx) => {
   const ip = getClientIp(ctx)
   const userAgent = ctx.headers['user-agent'] || ''
 
+  // 如果已登录用户传入了昵称，且与当前用户昵称不一致，更新用户昵称
+  let updatedUser = null
+  if (ctx.state.user && nickname && nickname !== ctx.state.user.nickname) {
+    await User.update({ nickname: xss(nickname) }, { where: { id: ctx.state.user.id } })
+    updatedUser = await User.findByPk(ctx.state.user.id)
+  }
+
   const comment = await Comment.create({
-    content,
-    nickname: ctx.state.user ? undefined : (nickname || '匿名游客'),
+    content: xss(content),
+    nickname: xss(ctx.state.user ? (nickname || ctx.state.user.nickname || ctx.state.user.username) : (nickname || '匿名游客')),
     ip_address: ip,
     user_agent: userAgent,
     post_id: postId,
@@ -80,7 +88,10 @@ router.post('/comments', async (ctx) => {
   // 更新文章评论数
   await post.increment('comment_count')
 
-  ctx.body = success(comment, '评论发表成功，等待审核')
+  ctx.body = success({
+    comment,
+    user: updatedUser ? updatedUser.toPublicJSON() : null
+  }, '评论发表成功，等待审核')
 })
 
 // ============================================

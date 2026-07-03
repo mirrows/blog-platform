@@ -2,6 +2,7 @@ const Koa = require('koa')
 const cors = require('koa-cors')
 const helmet = require('koa-helmet')
 const { koaBody } = require('koa-body')
+const mount = require('koa-mount');
 const static = require('koa-static')
 const path = require('path')
 
@@ -43,11 +44,27 @@ app.use(koaBody({
 // 5. 速率限制
 app.use(rateLimiter)
 
+// // 6. 静态文件服务（上传文件访问）
+// app.use(static(path.join(__dirname, '../uploads'), {
+//   maxage: 30 * 24 * 60 * 60 * 1000, // 30天缓存
+//   gzip: true
+// }))
 // 6. 静态文件服务（上传文件访问）
-app.use(static(path.join(__dirname, '../uploads'), {
+app.use(mount('/uploads', static(path.join(__dirname, '../uploads'), {
   maxage: 30 * 24 * 60 * 60 * 1000, // 30天缓存
-  gzip: true
-}))
+  gzip: true,
+  // 重点：设置响应头
+  setHeaders: (res, path, stats) => {
+    // 1. 彻底解决 NotSameOrigin 报错（允许任何来源读取）
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+
+    // 2. 加上 CORS 头（允许跨域）
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
+    // 3. 如果图片经常变动，可以禁用浏览器缓存（选填）
+    // res.setHeader('Cache-Control', 'no-cache');
+  }
+})))
 
 // 7. 路由
 const router = require('./routes/_index')

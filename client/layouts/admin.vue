@@ -56,7 +56,6 @@
           </el-button>
         </div>
       </div>
-
       <div class="admin-content">
         <slot />
       </div>
@@ -85,6 +84,7 @@ const pageTitle = computed(() => {
 const goToHome = () => {
   navigateTo('/')
 }
+
 </script>
 
 <style scoped lang="scss">

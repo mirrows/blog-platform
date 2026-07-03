@@ -68,7 +68,7 @@
         </el-form-item>
 
         <el-form-item label="文章内容" required>
-          <MdEditor
+          <LazyMdEditor
             v-model="form.content"
             :theme="isDark ? 'dark' : 'light'"
             :preview="true"
@@ -90,8 +90,9 @@
 </template>
 
 <script setup lang="ts">
-import { MdEditor } from 'md-editor-v3'
-import 'md-editor-v3/lib/style.css'
+// 不静态导入 MdEditor，让 Nuxt 的 Lazy 组件处理懒加载
+// LazyMdEditor 会自动从 @/components/MdEditor.vue 加载（如果存在）
+// 或者 Nuxt 会自动处理动态导入
 
 definePageMeta({
   layout: 'admin',
@@ -144,8 +145,8 @@ const toolbars = [
 ]
 
 onMounted(async () => {
-  await loadCategories()
-  await loadTags()
+  // 先加载数据
+  await Promise.all([loadCategories(), loadTags()])
   await loadPost()
 })
 
@@ -233,6 +234,16 @@ const savePost = async (status: string) => {
   .form-actions {
     display: flex;
     gap: 10px;
+  }
+
+  .editor-loading {
+    height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
   }
 }
 </style>

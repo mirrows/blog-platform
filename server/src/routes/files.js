@@ -41,7 +41,6 @@ router.get('/files', authMiddleware(), adminMiddleware, async (ctx) => {
 // 上传文件
 router.post('/files/upload', authMiddleware(), adminMiddleware, async (ctx) => {
   const file = ctx.request.files?.file
-
   if (!file) {
     ctx.body = fail('请选择要上传的文件')
     return

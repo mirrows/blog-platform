@@ -3,6 +3,7 @@ const { Op } = require('sequelize')
 const { Post, Category, Tag, User, Comment } = require('../models/_associations')
 const { success, fail, successWithPagination } = require('../utils/response')
 const { authMiddleware, adminMiddleware } = require('../middleware/auth')
+const xss = require('xss')
 
 const router = new Router({ prefix: '/api' })
 
@@ -169,9 +170,9 @@ router.post('/admin/posts', authMiddleware(), adminMiddleware, async (ctx) => {
   }
 
   const post = await Post.create({
-    title,
-    content,
-    summary: summary || content.substring(0, 200),
+    title: xss(title),
+    content: xss(content),
+    summary: xss(summary || content.substring(0, 200)),
     cover_image: coverImage,
     category_id: categoryId || null,
     author_id: ctx.state.user.id,
@@ -200,9 +201,9 @@ router.put('/admin/posts/:id', authMiddleware(), adminMiddleware, async (ctx) =>
   const { title, content, summary, coverImage, categoryId, tags, status } = ctx.request.body
 
   const updateData = {}
-  if (title !== undefined) updateData.title = title
-  if (content !== undefined) updateData.content = content
-  if (summary !== undefined) updateData.summary = summary
+  if (title !== undefined) updateData.title = xss(title)
+  if (content !== undefined) updateData.content = xss(content)
+  if (summary !== undefined) updateData.summary = xss(summary)
   if (coverImage !== undefined) updateData.cover_image = coverImage
   if (categoryId !== undefined) updateData.category_id = categoryId
   if (status !== undefined) {

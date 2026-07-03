@@ -68,31 +68,28 @@
         </el-form-item>
 
         <el-form-item label="文章内容" required>
-          <MdEditor
+          <LazyMdEditor
             v-model="form.content"
             :theme="isDark ? 'dark' : 'light'"
             :preview="true"
             :toolbars="toolbars"
-            height="500px"
+            height="400px"
           />
         </el-form-item>
 
-        <el-form-item>
+        <!-- <el-form-item>
           <div class="form-actions">
             <el-button @click="goBack">取消</el-button>
             <el-button type="success" @click="savePost('draft')">保存草稿</el-button>
             <el-button type="primary" @click="savePost('published')">发布文章</el-button>
           </div>
-        </el-form-item>
+        </el-form-item> -->
       </el-form>
     </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { MdEditor } from 'md-editor-v3'
-import 'md-editor-v3/lib/style.css'
-
 definePageMeta({
   layout: 'admin',
   middleware: 'auth'
@@ -145,8 +142,8 @@ const toolbars = [
 ]
 
 onMounted(async () => {
-  await loadCategories()
-  await loadTags()
+  // 先加载数据
+  await Promise.all([loadCategories(), loadTags()])
 
   if (isEdit.value) {
     await loadPost()
@@ -183,6 +180,7 @@ const loadPost = async () => {
 }
 
 const savePost = async (status: string) => {
+  console.log(322, form.value.title)
   if (!form.value.title || !form.value.content) {
     ElMessage.warning('请填写标题和内容')
     return
@@ -240,5 +238,6 @@ const savePost = async (status: string) => {
     display: flex;
     gap: 10px;
   }
+
 }
 </style>
