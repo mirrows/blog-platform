@@ -223,6 +223,24 @@ router.put('/admin/posts/:id', authMiddleware(), adminMiddleware, async (ctx) =>
   ctx.body = success(post, '更新成功')
 })
 
+// 获取单篇文章（管理员）
+router.get('/admin/posts/:id', authMiddleware(), adminMiddleware, async (ctx) => {
+  const post = await Post.findByPk(ctx.params.id, {
+    include: [
+      { model: Category, as: 'category', attributes: ['id', 'name'] },
+      { model: Tag, as: 'tags', attributes: ['id', 'name', 'slug'], through: { attributes: [] } },
+      { model: User, as: 'author', attributes: ['id', 'username'] }
+    ]
+  })
+
+  if (!post) {
+    ctx.body = fail('文章不存在', 404)
+    return
+  }
+
+  ctx.body = success(post)
+})
+
 // 删除文章
 router.delete('/admin/posts/:id', authMiddleware(), adminMiddleware, async (ctx) => {
   const post = await Post.findByPk(ctx.params.id)

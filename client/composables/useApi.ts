@@ -46,30 +46,18 @@ export const useApi = () => {
     }
 
     try {
-      const { data, error } = await useFetch(fullUrl, {
+      const res = await $fetch(fullUrl, {
         method: options.method || 'GET',
         body: options.body,
         headers,
-        onRequest({ request, options }) {
-          // 不设置 Content-Type，让浏览器自动处理 FormData
-        },
       })
 
-      if (error.value) {
-        console.error('API Error:', error.value)
-        return {
-          code: error.value.statusCode || 500,
-          message: error.value.message || '网络错误',
-          data: null as T,
-        }
-      }
-
-      return data.value as any
+      return res as any
     } catch (err: any) {
       console.error('Request Error:', err)
       return {
-        code: 500,
-        message: err.message || '请求失败',
+        code: err?.response?.status || 500,
+        message: err?.data?.message || err.message || '请求失败',
         data: null as T,
       }
     }

@@ -60,6 +60,42 @@ router.get('/stats/overview', async (ctx) => {
 // 获取详细统计数据（管理员）
 router.get('/admin/stats', authMiddleware(), adminMiddleware, async (ctx) => {
   const now = new Date()
+  const { User, Comment } = require('../models/_associations')
+
+  // 计算本月开始时间
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+  // 5分钟前
+  const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000)
+
+  // 当前在线人数
+  const onlineUsers = await VisitLog.count({
+    where: { created_at: { [Op.gte]: fiveMinutesAgo } },
+    distinct: true,
+    col: 'ip_address'
+  })
+
+  // 月访问量
+  const monthlyVisits = await VisitLog.count({
+    where: { created_at: { [Op.gte]: monthStart } }
+  })
+
+  // 文章统计
+  const totalPosts = await Post.count()
+  const publishedPosts = await Post.count({ where: { status: 'published' } })
+  const draftPosts = await Post.count({ where: { status: 'draft' } })
+  const archivedPosts = await Post.count({ where: { status: 'archived' } })
+
+  // 评论统计
+  const totalComments = await Comment.count()
+  const approvedComments = await Comment.count({ where: { status: 'approved' } })
+  const pendingComments = await Comment.count({ where: { status: 'pending' } })
+  const rejectedComments = await Comment.count({ where: { status: 'rejected' } })
+
+  // 用户统计
+  const totalUsers = await User.count()
+
+  // 总阅读量
+  const totalViews = await Post.sum('view_count')
 
   // 过去30天每天访问量
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
@@ -84,6 +120,18 @@ router.get('/admin/stats', authMiddleware(), adminMiddleware, async (ctx) => {
   })
 
   ctx.body = success({
+    posts: totalPosts,
+    comments: totalComments,
+    users: totalUsers,
+    views: totalViews || 0,
+    onlineUsers,
+    monthlyVisits,
+    publishedPosts,
+    draftPosts,
+    archivedPosts,
+    approvedComments,
+    pendingComments,
+    rejectedComments,
     daily_visits: dailyVisits,
     top_posts: topPosts
   })

@@ -12,7 +12,8 @@ const routes = [
   require('./favorites'),
   require('./stats'),
   require('./files'),
-  require('./rss')
+  require('./rss'),
+  require('./users')
 ]
 
 // 注册所有路由
