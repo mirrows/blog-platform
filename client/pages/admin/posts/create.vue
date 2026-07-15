@@ -172,8 +172,8 @@ const loadPost = async () => {
       title: post.title,
       content: post.content,
       summary: post.summary || '',
-      coverImage: post.cover_image || '',
-      categoryId: post.category_id,
+      coverImage: post.coverImage || '',
+      categoryId: post.categoryId,
       tags: post.tags?.map((t: any) => t.id) || []
     }
   }

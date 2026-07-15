@@ -85,6 +85,19 @@ const goToHome = () => {
   navigateTo('/')
 }
 
+// onMounted(() => {
+//   console.log(454, 'Admin layout mounted', 'requestIdleCallback' in window)
+//   if ('requestIdleCallback' in window) {
+//     requestIdleCallback(async () => {
+//       console.log(4543333, 21)
+//       preloadComponents('MdEditorFile')
+//     })
+//   } else {
+//     setTimeout(async () => {
+//       preloadComponents('MdEditorFile')
+//     }, 2000)
+//   }
+// })
 </script>
 
 <style scoped lang="scss">

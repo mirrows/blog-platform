@@ -13,7 +13,8 @@ const routes = [
   require('./stats'),
   require('./files'),
   require('./rss'),
-  require('./users')
+  require('./users'),
+  require('./settings')
 ]
 
 // 注册所有路由

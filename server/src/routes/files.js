@@ -28,6 +28,8 @@ router.get('/files', authMiddleware(), adminMiddleware, async (ctx) => {
     grouped[key].push(file)
   })
 
+  console.log(4555, grouped)
+
   ctx.body = success({
     groups: grouped,
     pagination: {

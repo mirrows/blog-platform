@@ -1,12 +1,13 @@
 /**
  * 统一响应格式工具
  */
+const { transformResponse } = require('./transform')
 
 function success(data, message = 'success') {
   return {
     code: 200,
     message,
-    data
+    data: transformResponse(data)
   }
 }
 
@@ -14,7 +15,7 @@ function successWithPagination(list, pagination) {
   return {
     code: 200,
     message: 'success',
-    data: { list, pagination }
+    data: transformResponse({ list, pagination })
   }
 }
 

@@ -444,7 +444,86 @@ BACKEND_DOMAIN=https://api.your-domain.com
 
 ---
 
-## 12. 禁止事项
+## 12. API 响应字段命名规范
+
+### 12.1 字段命名规则
+- **必须使用小驼峰命名（camelCase）**
+- ❌ 禁止使用下划线命名（snake_case）：如 `user_name`、`created_at`
+- ❌ 禁止使用大驼峰命名（PascalCase）：如 `UserName`、`CreatedAt`
+- ✅ 正确示例：`userName`、`createdAt`、`viewCount`、`coverImage`
+
+### 12.2 数据库字段与 API 响应的映射
+```javascript
+// 数据库字段（下划线命名）
+// posts 表：user_id, created_at, view_count, cover_image
+
+// API 响应字段（小驼峰命名）
+{
+  userId: 1,
+  createdAt: "2024-01-01 00:00:00",
+  viewCount: 100,
+  coverImage: "https://example.com/image.jpg"
+}
+```
+
+### 12.3 字段转换工具
+```javascript
+// utils/transform.js
+function camelCase(str) {
+  return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
+}
+
+function transformKeys(obj, callback) {
+  if (Array.isArray(obj)) {
+    return obj.map(item => transformKeys(item, callback))
+  }
+  if (obj !== null && typeof obj === 'object') {
+    return Object.keys(obj).reduce((result, key) => {
+      result[callback(key)] = transformKeys(obj[key], callback)
+      return result
+    }, {})
+  }
+  return obj
+}
+
+// 使用示例
+const response = transformKeys(sequelizeResult, camelCase)
+```
+
+### 12.4 在路由中使用
+```javascript
+// ✅ 正确：转换后返回
+router.get('/admin/posts', async (ctx) => {
+  const posts = await Post.findAll()
+  const transformedPosts = transformKeys(posts, camelCase)
+  ctx.body = success(transformedPosts)
+})
+
+// ❌ 错误：直接返回数据库字段
+router.get('/admin/posts', async (ctx) => {
+  const posts = await Post.findAll()
+  ctx.body = success(posts)  // 返回下划线字段
+})
+```
+
+### 12.5 嵌套对象处理
+```javascript
+// 关联查询的结果也需要转换
+const posts = await Post.findAll({
+  include: [
+    { model: Category, as: 'category' },
+    { model: User, as: 'author' }
+  ]
+})
+
+// 转换所有层级
+const transformed = transformKeys(posts, camelCase)
+// 结果：post.category.name, post.author.userName
+```
+
+---
+
+## 13. 禁止事项
 
 - ❌ 禁止在路由处理函数中直接使用 `console.log`（使用日志库）
 - ❌ 禁止在循环中执行数据库查询（N+1 问题）

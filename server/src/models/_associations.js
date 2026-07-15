@@ -8,6 +8,7 @@ const Like = require('./Like')
 const Favorite = require('./Favorite')
 const File = require('./File')
 const VisitLog = require('./VisitLog')
+const Setting = require('./Setting')
 
 // ============================================
 // User 关联
@@ -75,5 +76,5 @@ Comment.belongsTo(Comment, { foreignKey: 'parent_id', as: 'parent' })
 Comment.hasMany(Comment, { foreignKey: 'parent_id', as: 'replies' })
 
 module.exports = {
-  User, Post, Category, Tag, Comment, Like, Favorite, File, VisitLog, PostTag
+  User, Post, Category, Tag, Comment, Like, Favorite, File, VisitLog, PostTag, Setting
 }

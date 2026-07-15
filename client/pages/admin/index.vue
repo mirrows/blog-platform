@@ -72,8 +72,12 @@
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="view_count" label="阅读量" width="100" />
-              <el-table-column prop="created_at" label="创建时间" width="180" />
+              <el-table-column prop="viewCount" label="阅读量" width="100" />
+              <el-table-column prop="createdAt" label="创建时间" width="180">
+                <template #default="{ row }">
+                  {{ formatDate(row.createdAt) }}
+                </template>
+              </el-table-column>
             </el-table>
           </el-card>
         </el-col>
@@ -95,7 +99,7 @@
                   </el-tag>
                 </div>
                 <div class="comment-content">{{ comment.content.substring(0, 50) }}...</div>
-                <div class="comment-time">{{ formatDate(comment.created_at) }}</div>
+                <div class="comment-time">{{ formatDate(comment.createdAt) }}</div>
               </div>
             </div>
           </el-card>
@@ -160,7 +164,13 @@ const formatDate = (date: string | null | undefined) => {
   if (!date) return '-'
   const d = new Date(date)
   if (isNaN(d.getTime())) return '-'
-  return d.toLocaleString('zh-CN')
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  const hours = String(d.getHours()).padStart(2, '0')
+  const minutes = String(d.getMinutes()).padStart(2, '0')
+  const seconds = String(d.getSeconds()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
 </script>
 

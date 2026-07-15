@@ -3,6 +3,7 @@ const { Op } = require('sequelize')
 const { Post, Category, Tag, User, Comment } = require('../models/_associations')
 const { success, fail, successWithPagination } = require('../utils/response')
 const { authMiddleware, adminMiddleware } = require('../middleware/auth')
+const { transformResponse } = require('../utils/transform')
 const xss = require('xss')
 
 const router = new Router({ prefix: '/api' })
@@ -38,11 +39,17 @@ router.get('/posts', async (ctx) => {
     attributes: { exclude: ['content'] }
   })
 
-  ctx.body = successWithPagination(rows, {
-    page: Number(page),
-    pageSize: Number(pageSize),
-    total: count
+  // 转换字段为小驼峰命名
+  const transformedData = transformResponse({
+    list: rows,
+    pagination: {
+      page: Number(page),
+      pageSize: Number(pageSize),
+      total: count
+    }
   })
+
+  ctx.body = successWithPagination(transformedData.list, transformedData.pagination)
 })
 
 // 搜索文章
@@ -75,12 +82,18 @@ router.get('/posts/search', async (ctx) => {
     attributes: { exclude: ['content'] }
   })
 
-  ctx.body = successWithPagination(rows, {
-    page: Number(page),
-    pageSize: Number(pageSize),
-    total: count,
-    keyword: q
+  // 转换字段为小驼峰命名
+  const transformedData = transformResponse({
+    list: rows,
+    pagination: {
+      page: Number(page),
+      pageSize: Number(pageSize),
+      total: count,
+      keyword: q
+    }
   })
+
+  ctx.body = successWithPagination(transformedData.list, transformedData.pagination)
 })
 
 // 获取文章详情
@@ -102,7 +115,9 @@ router.get('/posts/:id', async (ctx) => {
   post.view_count += 1
   await post.save()
 
-  ctx.body = success(post)
+  // 转换字段为小驼峰命名
+  const transformedPost = transformResponse(post)
+  ctx.body = success(transformedPost)
 })
 
 // 获取文章归档
@@ -153,11 +168,17 @@ router.get('/admin/posts', authMiddleware(), adminMiddleware, async (ctx) => {
     offset: Number(offset)
   })
 
-  ctx.body = successWithPagination(rows, {
-    page: Number(page),
-    pageSize: Number(pageSize),
-    total: count
+  // 转换字段为小驼峰命名
+  const transformedData = transformResponse({
+    list: rows,
+    pagination: {
+      page: Number(page),
+      pageSize: Number(pageSize),
+      total: count
+    }
   })
+
+  ctx.body = successWithPagination(transformedData.list, transformedData.pagination)
 })
 
 // 创建文章
@@ -186,7 +207,9 @@ router.post('/admin/posts', authMiddleware(), adminMiddleware, async (ctx) => {
     await post.setTags(tagInstances)
   }
 
-  ctx.body = success(post, '创建成功')
+  // 转换字段为小驼峰命名
+  const transformedPost = transformResponse(post)
+  ctx.body = success(transformedPost, '创建成功')
 })
 
 // 更新文章
@@ -221,7 +244,9 @@ router.put('/admin/posts/:id', authMiddleware(), adminMiddleware, async (ctx) =>
     await post.setTags(tagInstances)
   }
 
-  ctx.body = success(post, '更新成功')
+  // 转换字段为小驼峰命名
+  const transformedPost = transformResponse(post)
+  ctx.body = success(transformedPost, '更新成功')
 })
 
 // 获取单篇文章（管理员）
@@ -239,7 +264,9 @@ router.get('/admin/posts/:id', authMiddleware(), adminMiddleware, async (ctx) =>
     return
   }
 
-  ctx.body = success(post)
+  // 转换字段为小驼峰命名
+  const transformedPost = transformResponse(post)
+  ctx.body = success(transformedPost)
 })
 
 // 删除文章

@@ -9,6 +9,7 @@ export default defineNuxtConfig({
     '@element-plus/nuxt'
   ],
 
+
   // CSS 全局引入
   css: [
     '~/assets/styles/global.scss',
@@ -23,6 +24,30 @@ export default defineNuxtConfig({
           additionalData: '@use "~/assets/styles/variables.scss" as *;\n',
         },
       },
+    },
+    optimizeDeps: {
+      include: [
+        'md-editor-v3',
+        '@lucide/vue',  // 强制预构建图标库，合并所有图标到一个 chunk
+        '@element-plus/icons-vue',
+        '@vue/devtools-core',
+        '@vue/devtools-kit',
+        'dayjs',
+        'dayjs/plugin/*.js',
+        'lodash-unified',
+        'markdown-it',
+        'md-editor-v3',
+        '@lezer/common',
+        '@lezer/lr',
+        '@lezer/markdown',
+        '@lezer/highlight',
+        '@element-plus/icons-vue',
+        '@lezer/common',
+        '@lezer/highlight',
+        '@lezer/lr',
+        '@lezer/markdown',
+        'xss', // CJS
+      ]
     },
   },
 
@@ -53,6 +78,8 @@ export default defineNuxtConfig({
   build: {
     transpile: ['element-plus', 'md-editor-v3'],
   },
-
   compatibilityDate: '2025-04-01',
+  // components: {
+  //   dirs: []
+  // }
 })

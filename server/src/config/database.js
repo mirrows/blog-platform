@@ -13,7 +13,7 @@ const sequelize = new Sequelize(
     timezone: config.database.timezone,
     define: {
       timestamps: true,
-      underscored: true,
+      underscored: false,
       charset: 'utf8mb4',
       collate: 'utf8mb4_unicode_ci'
     },

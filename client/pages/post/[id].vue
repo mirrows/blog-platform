@@ -13,10 +13,10 @@
             <el-icon><User /></el-icon> {{ post.author.username }}
           </span>
           <span class="date">
-            <el-icon><Calendar /></el-icon> {{ formatDate(post.published_at) }}
+            <el-icon><Calendar /></el-icon> {{ formatDate(post.publishedAt) }}
           </span>
           <span class="views">
-            <el-icon><View /></el-icon> {{ post.view_count }} 阅读
+            <el-icon><View /></el-icon> {{ post.viewCount }} 阅读
           </span>
           <span v-if="post.category" class="category">
             <el-icon><Folder /></el-icon> {{ post.category.name }}
@@ -29,13 +29,14 @@
           </el-tag>
         </div>
 
-        <div class="article-content" v-html="renderedContent"></div>
+        <!-- <div class="article-content" v-html="renderedContent"></div> -->
+        <MdPreview v-model="renderedContent" />
       </article>
 
       <!-- 评论区 -->
       <div class="comment-section card">
-        <h3 class="comment-title">评论 ({{ post.comment_count || 0 }})</h3>
-        <CommentList :post-id="post.id" />
+        <h3 class="comment-title">评论 ({{ post.commentCount || 0 }})</h3>
+        <CommentList :post-id="post.id" @comment-submitted="handleCommentSubmitted" />
       </div>
     </div>
 
@@ -47,14 +48,26 @@
 
 <script setup lang="ts">
 import { User, Calendar, View, Folder } from '@element-plus/icons-vue'
-import { MdPreview } from 'md-editor-v3'
+// import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
+import xss from 'xss'
+
+const MdPreview = defineAsyncComponent({
+  loader: () => import('md-editor-v3').then(m => m.MdPreview),
+  suspensible: true,
+})
 
 const route = useRoute()
 const api = useApi()
 const post = ref<any>(null)
 const loading = ref(true)
 const renderedContent = ref('')
+
+const handleCommentSubmitted = () => {
+  if (post.value) {
+    post.value.commentCount = (post.value.commentCount || 0) + 1
+  }
+}
 
 const formatDate = (date: string) => {
   if (!date) return ''
@@ -68,7 +81,7 @@ onMounted(async () => {
   if (res.code === 200 && res.data) {
     post.value = res.data
     // 简单 Markdown 渲染（生产环境建议使用 marked 或 md-editor-v3 的预览组件）
-    renderedContent.value = renderMarkdown(res.data.content || '')
+    renderedContent.value = xss(res.data.content || '')
   }
   loading.value = false
 })

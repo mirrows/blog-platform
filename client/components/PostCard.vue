@@ -1,14 +1,14 @@
 <template>
   <div class="post-card card" @click="navigateTo(`/post/${post.id}`)">
-    <div v-if="post.cover_image" class="post-cover">
-      <img :src="post.cover_image" :alt="post.title" loading="lazy" />
+    <div v-if="post.coverImage" class="post-cover">
+      <img :src="post.coverImage" :alt="post.title" loading="lazy" />
     </div>
     <div class="post-body">
       <div class="post-meta">
         <span v-if="post.category" class="category-tag">
           {{ post.category.name }}
         </span>
-        <span class="date">{{ formatDate(post.published_at) }}</span>
+        <span class="date">{{ formatDate(post.publishedAt) }}</span>
       </div>
       <h3 class="post-title">{{ post.title }}</h3>
       <p class="post-summary">{{ post.summary || post.content?.substring(0, 150) }}</p>
@@ -19,8 +19,8 @@
           </span>
         </div>
         <div class="stats">
-          <span><el-icon><View /></el-icon> {{ post.view_count || 0 }}</span>
-          <span><el-icon><ChatDotRound /></el-icon> {{ post.comment_count || 0 }}</span>
+          <span><el-icon><View /></el-icon> {{ post.viewCount || 0 }}</span>
+          <span><el-icon><ChatDotRound /></el-icon> {{ post.commentCount || 0 }}</span>
         </div>
       </div>
     </div>

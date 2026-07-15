@@ -34,7 +34,7 @@
           <div v-for="file in group.files" :key="file.id" class="file-item">
             <div class="file-preview">
               <el-image
-                v-if="file.mime_type?.startsWith('image/')"
+                v-if="file.mimeType?.startsWith('image/')"
                 :src="file.url"
                 fit="cover"
                 class="file-thumb"
@@ -45,7 +45,7 @@
               </div>
             </div>
             <div class="file-info">
-              <p class="file-name" :title="file.original_name">{{ file.original_name }}</p>
+              <p class="file-name" :title="file.originalName">{{ file.originalName }}</p>
               <p class="file-size">{{ formatFileSize(file.size) }}</p>
             </div>
             <div class="file-actions">
@@ -75,7 +75,7 @@ const config = useRuntimeConfig()
 const files = ref([])
 const loading = ref(false)
 
-const uploadUrl = `${config.public.apiBase}/files/upload`
+const uploadUrl = `${config.public.apiBase}/admin/files/upload`
 const uploadHeaders = {
   Authorization: `Bearer ${localStorage.getItem('token')}`
 }
@@ -85,15 +85,18 @@ const filesByMonth = computed(() => {
   const groups: Record<string, any[]> = {}
 
   files.value.forEach((file: any) => {
-    const date = new Date(file.created_at)
-    const key = `${date.getFullYear()}年${String(date.getMonth() + 1).padStart(2, '0')}月`
+    // 后端返回的 uploadDate 格式为 YYYY-MM-DD，直接使用
+    const key = file.uploadDate
     if (!groups[key]) groups[key] = []
     groups[key].push(file)
   })
 
   return Object.entries(groups)
     .sort(([a], [b]) => b.localeCompare(a))
-    .map(([month, files]) => ({ month, files }))
+    .map(([month, files]) => ({
+      month: `${month.substring(0, 4)}年${month.substring(5, 7)}月${month.substring(8, 10)}日`,
+      files
+    }))
 })
 
 onMounted(() => {
@@ -103,7 +106,7 @@ onMounted(() => {
 const loadFiles = async () => {
   loading.value = true
   try {
-    const res = await api.get('/files', { page: 1, pageSize: 100 })
+    const res = await api.get('/admin/files', { page: 1, pageSize: 100 })
     if (res.code === 200) {
       // 后端返回格式：{ groups: { "2026-07": [...] }, pagination: {...} }
       const allFiles: any[] = []
@@ -112,7 +115,12 @@ const loadFiles = async () => {
           allFiles.push(...fileGroup)
         })
       }
-      files.value = allFiles
+      // 为每个文件拼接完整的 URL（后端返回的是相对路径）
+      const backendUrl = config.public.backend
+      files.value = allFiles.map((file: any) => ({
+        ...file,
+        url: file.url.startsWith('http') ? file.url : `${backendUrl}${file.url}`
+      }))
     }
   } finally {
     loading.value = false
@@ -146,7 +154,7 @@ const deleteFile = async (id: number) => {
       type: 'warning'
     })
 
-    const res = await api.delete(`/files/${id}`)
+    const res = await api.delete(`/admin/files/${id}`)
     if (res.code === 200) {
       ElMessage.success('删除成功')
       loadFiles()
@@ -213,7 +221,7 @@ const formatFileSize = (bytes: number) => {
 
         &:hover {
           box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-          transform: translateY(-2px);
+          // transform: translateY(-2px);
         }
 
         .file-preview {

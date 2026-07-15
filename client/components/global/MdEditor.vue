@@ -1,27 +1,36 @@
 <template>
-  <Suspense>
-    <template #fallback>
-      <div class="internal-loading" :style="{height}">模块加载中...</div>
-    </template>
-    <MdEditor
-      :style="{height}"
-      :model-value="modelValue"
-      @update:model-value="handleUpdate"
-      :theme="theme"
-      :preview="preview"
-      :toolbars="toolbars"
-      @upload-img="handleUploadImg"
-    />
-  </Suspense>
+  <!-- <div>
+    <ClientOnly>
+      <div v-if="ready"> -->
+        <Suspense>
+          <template #fallback>
+            <div class="internal-loading" :style="{height}">模块加载中...</div>
+          </template>
+          <MdEditor
+            :style="{height}"
+            :model-value="modelValue"
+            @update:model-value="handleUpdate"
+            :theme="theme"
+            :preview="preview"
+            :toolbars="toolbars"
+            @upload-img="handleUploadImg"
+          />
+        </Suspense>
+      <!-- </div>
+    </ClientOnly>
+  </div> -->
 </template>
 
 <script setup lang="ts">
+// import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 
 const MdEditor = defineAsyncComponent({
   loader: () => import('md-editor-v3').then(m => m.MdEditor),
   suspensible: true,
 })
+
+const ready = ref(false)
 
 const props = defineProps<{
   modelValue?: string
@@ -69,6 +78,12 @@ const handleUploadImg = async (files: File[], callback: (urls: string[]) => void
 
   callback(urls)
 }
+
+onMounted(() => {
+  requestAnimationFrame(() => {
+    ready.value = true
+  })
+})
 </script>
 
 <style scoped lang="scss">

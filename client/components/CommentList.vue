@@ -44,6 +44,7 @@
 
 <script setup lang="ts">
 const props = defineProps<{ postId: number }>()
+const emit = defineEmits<{ (e: 'comment-submitted'): void }>()
 const auth = useAuth()
 const api = useApi()
 
@@ -70,6 +71,8 @@ const loadComments = async () => {
   }
 }
 
+const autoApprove = ref(true)
+
 const submitComment = async () => {
   if (!content.value.trim()) {
     ElMessage.warning('请输入评论内容')
@@ -92,7 +95,7 @@ const submitComment = async () => {
   submitting.value = false
 
   if (res.code === 200) {
-    ElMessage.success('评论发表成功，等待审核')
+    ElMessage.success(res.message || '评论发表成功')
     content.value = ''
     // 如果服务端返回了更新后的用户信息，更新本地状态
     if (res.data?.user) {
@@ -101,12 +104,23 @@ const submitComment = async () => {
         localStorage.setItem('user', JSON.stringify(res.data.user))
       }
     }
+    // 如果开启了默认通过，立即刷新评论列表，并通知父页面更新评论数
+    if (autoApprove.value) {
+      loadComments()
+      emit('comment-submitted')
+    }
   } else {
     ElMessage.error(res.message || '评论失败')
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  // 读取全局设置中的 autoApprove 配置
+  const settingsRes = await api.get('/settings', { key: 'autoApprove' })
+  if (settingsRes.code === 200 && settingsRes.data?.autoApprove !== undefined) {
+    autoApprove.value = settingsRes.data.autoApprove
+  }
+
   loadComments()
   // 初始化昵称 - 延迟执行确保 auth.user 已从 localStorage 恢复
   setTimeout(() => {

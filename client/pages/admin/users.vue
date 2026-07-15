@@ -24,10 +24,10 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="post_count" label="文章数" width="100" />
-        <el-table-column prop="created_at" label="注册时间" width="180">
+        <el-table-column prop="postCount" label="文章数" width="100" />
+        <el-table-column prop="createdAt" label="注册时间" width="180">
           <template #default="{ row }">
-            {{ formatDate(row.created_at) }}
+            {{ formatDate(row.createdAt) }}
           </template>
         </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">

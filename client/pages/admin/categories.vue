@@ -14,10 +14,10 @@
         <el-table-column prop="name" label="分类名称" min-width="150" />
         <el-table-column prop="slug" label="URL标识" min-width="150" />
         <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="post_count" label="文章数" width="100" />
-        <el-table-column prop="created_at" label="创建时间" width="180">
+        <el-table-column prop="postCount" label="文章数" width="100" />
+        <el-table-column prop="createdAt" label="创建时间" width="180">
           <template #default="{ row }">
-            {{ formatDate(row.created_at) }}
+            {{ formatDate(row.createdAt) }}
           </template>
         </el-table-column>
         <el-table-column label="操作" width="180" fixed="right">
@@ -30,7 +30,7 @@
               type="danger"
               link
               @click="deleteCategory(row.id)"
-              :disabled="row.post_count > 0"
+              :disabled="row.postCount > 0"
             >
               <el-icon><Delete /></el-icon>
               删除

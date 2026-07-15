@@ -1,5 +1,5 @@
 const Router = require('koa-router')
-const { Comment, Post, User } = require('../models/_associations')
+const { Comment, Post, User, Setting } = require('../models/_associations')
 const { success, fail, successWithPagination } = require('../utils/response')
 const { authMiddleware, adminMiddleware } = require('../middleware/auth')
 const { getClientIp } = require('../utils/ipLocation')
@@ -74,6 +74,10 @@ router.post('/comments', authMiddleware(false), async (ctx) => {
     updatedUser = await User.findByPk(ctx.state.user.id)
   }
 
+  // 从全局设置中读取 autoApprove 配置
+  const setting = await Setting.findOne({ where: { key: 'autoApprove' } })
+  const autoApprove = setting ? setting.value === 'true' : true
+
   const comment = await Comment.create({
     content: xss(content),
     nickname: xss(ctx.state.user ? (nickname || ctx.state.user.nickname || ctx.state.user.username) : (nickname || '匿名游客')),
@@ -82,7 +86,7 @@ router.post('/comments', authMiddleware(false), async (ctx) => {
     post_id: postId,
     user_id: ctx.state.user?.id || null,
     parent_id: parentId || null,
-    status: 'pending' // 新评论默认待审核
+    status: autoApprove ? 'approved' : 'pending'
   })
 
   // 更新文章评论数
@@ -91,7 +95,7 @@ router.post('/comments', authMiddleware(false), async (ctx) => {
   ctx.body = success({
     comment,
     user: updatedUser ? updatedUser.toPublicJSON() : null
-  }, '评论发表成功，等待审核')
+  }, autoApprove ? '评论发表成功' : '评论发表成功，等待审核')
 })
 
 // ============================================

@@ -2,6 +2,7 @@
   <div class="comments-management">
     <div class="page-header">
       <h2>评论管理</h2>
+      <el-checkbox v-model="autoApproved" label="默认通过" @change="handleAutoApprovedChange" />
     </div>
 
     <el-card>
@@ -41,12 +42,12 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="ip_address" label="IP地址" width="140" />
-        <el-table-column prop="created_at" label="评论时间" width="180">
-          <template #default="{ row }">
-            {{ formatDate(row.created_at) }}
-          </template>
-        </el-table-column>
+        <el-table-column prop="ipAddress" label="IP地址" width="140" />
+         <el-table-column prop="createdAt" label="评论时间" width="180">
+           <template #default="{ row }">
+             {{ formatDate(row.createdAt) }}
+           </template>
+         </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button
@@ -105,9 +106,31 @@ const total = ref(0)
 const filterStatus = ref('')
 const searchKeyword = ref('')
 
-onMounted(() => {
+// 从后端读取"默认通过"设置，默认为 true
+const autoApproved = ref(true)
+
+onMounted(async () => {
+  await loadAutoApproveSetting()
   loadComments()
 })
+
+const loadAutoApproveSetting = async () => {
+  const res = await api.get('/admin/settings')
+  if (res.code === 200 && res.data) {
+    autoApproved.value = res.data.autoApprove !== false
+  }
+}
+
+const handleAutoApprovedChange = async (val: boolean) => {
+  try {
+    const res = await api.put('/admin/settings', { autoApprove: val })
+    if (res.code === 200) {
+      ElMessage.success('设置已更新')
+    }
+  } catch (error) {
+    ElMessage.error('更新设置失败')
+  }
+}
 
 const loadComments = async () => {
   loading.value = true
@@ -199,7 +222,13 @@ const formatDate = (date: string | null | undefined) => {
   if (!date) return '-'
   const d = new Date(date)
   if (isNaN(d.getTime())) return '-'
-  return d.toLocaleString('zh-CN')
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  const hours = String(d.getHours()).padStart(2, '0')
+  const minutes = String(d.getMinutes()).padStart(2, '0')
+  const seconds = String(d.getSeconds()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
 </script>
 

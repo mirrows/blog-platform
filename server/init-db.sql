@@ -150,6 +150,22 @@ CREATE TABLE IF NOT EXISTS `files` (
   INDEX `idx_uploader` (`uploader_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 全局设置表
+CREATE TABLE IF NOT EXISTS `settings` (
+  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `key` VARCHAR(100) NOT NULL UNIQUE,
+  `value` TEXT NOT NULL DEFAULT '',
+  `description` VARCHAR(500) DEFAULT NULL,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX `idx_key` (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 插入默认全局配置（默认通过 = true）
+INSERT INTO `settings` (`key`, `value`, `description`) VALUES
+('autoApprove', 'true', '评论默认通过（true=通过，false=需要审核）')
+ON DUPLICATE KEY UPDATE `key` = `key`;
+
 -- 插入默认管理员账号（密码: admin123）
 -- 注意：密码哈希由 init-db.js 动态生成，这里使用占位符
 INSERT INTO `users` (`username`, `email`, `password`, `role`, `status`, `created_at`, `updated_at`)
