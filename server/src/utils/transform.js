@@ -41,13 +41,10 @@ function transformKeys(obj, callback) {
   if (obj !== null && typeof obj === 'object') {
     // 先获取纯净的普通对象（处理 Sequelize 实例）
     const plain = toPlainObject(obj)
-    // 如果已经是普通对象，直接处理
-    if (plain !== obj) {
-      return transformKeys(plain, callback)
-    }
-    return Object.keys(obj).reduce((result, key) => {
+    // 转换键名
+    return Object.keys(plain).reduce((result, key) => {
       const newKey = callback(key)
-      result[newKey] = transformKeys(obj[key], callback)
+      result[newKey] = transformKeys(plain[key], callback)
       return result
     }, {})
   }

@@ -15,38 +15,30 @@ const File = sequelize.define('File', {
     type: DataTypes.STRING(255),
     allowNull: false
   },
-  url: {
+  path: {
     type: DataTypes.STRING(500),
     allowNull: false
   },
-  size: {
-    type: DataTypes.BIGINT,
+  url: {
+    type: DataTypes.STRING(500),
     allowNull: false
   },
   mime_type: {
     type: DataTypes.STRING(100),
     allowNull: false
   },
-  upload_date: {
-    type: DataTypes.DATEONLY,
+  size: {
+    type: DataTypes.BIGINT,
     allowNull: false
   },
-  uploaded_by: {
+  uploader_id: {
     type: DataTypes.INTEGER,
     allowNull: true
-  },
-  is_deleted: {
-    type: DataTypes.TINYINT(1),
-    defaultValue: 0
   }
 }, {
   tableName: 'files',
   timestamps: true,
-  underscored: true,
-  indexes: [
-    { fields: ['upload_date'] },
-    { fields: ['is_deleted'] }
-  ]
+  underscored: true
 })
 
 module.exports = File

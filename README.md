@@ -147,12 +147,16 @@ npm run dev
 ```bash
 # 在项目根目录执行
 docker-compose up -d
+
+docker tag docker.m.daocloud.io/library/node:20-alpine node:20-alpine
+docker tag docker.m.daocloud.io/library/mysql:8.0 mysql:8.0
+docker tag docker.m.daocloud.io/library/nginx:alpine nginx:alpine
 ```
 
 ## 📝 首次使用指南
 
 ### 1. 登录后台
-- 访问 http://localhost:3000/login
+- 访问 http://localhost:8076/login（Docker 部署）或 http://localhost:3000/login（本地开发）
 - 使用默认管理员账号登录：`admin` / `admin123`
 
 ### 2. 创建第一篇文章

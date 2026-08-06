@@ -54,12 +54,12 @@ async function initDatabase() {
       console.log(`   用户名：${adminUsername}`)
       console.log(`   密码：${process.env.ADMIN_PASSWORD || 'admin123'}`)
     } else {
-      // 管理员已存在，更新密码以确保密码哈希正确
+      // 管理员已存在，更新密码和状态以确保账号可用
       await connection.query(
-        'UPDATE users SET password = ?, email = ? WHERE username = ?',
+        'UPDATE users SET password = ?, email = ?, status = 1 WHERE username = ?',
         [hashedPassword, adminEmail, adminUsername]
       )
-      console.log('✅ 管理员账号已存在，密码已更新')
+      console.log('✅ 管理员账号已存在，密码和状态已更新')
       console.log(`   用户名：${adminUsername}`)
       console.log(`   密码：${process.env.ADMIN_PASSWORD || 'admin123'}`)
     }

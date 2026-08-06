@@ -11,8 +11,7 @@ const Comment = sequelize.define('Comment', {
     type: DataTypes.TEXT,
     allowNull: false,
     validate: {
-      notEmpty: { msg: '评论内容不能为空' },
-      len: [1, 1000]
+      notEmpty: { msg: '评论内容不能为空' }
     }
   },
   nickname: {
@@ -21,15 +20,19 @@ const Comment = sequelize.define('Comment', {
   },
   ip_address: {
     type: DataTypes.STRING(45),
-    allowNull: false
+    allowNull: true
   },
   user_agent: {
-    type: DataTypes.STRING(500),
+    type: DataTypes.STRING(255),
     allowNull: true
   },
   status: {
     type: DataTypes.ENUM('pending', 'approved', 'rejected'),
     defaultValue: 'pending'
+  },
+  parent_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true
   },
   post_id: {
     type: DataTypes.INTEGER,
@@ -38,19 +41,11 @@ const Comment = sequelize.define('Comment', {
   user_id: {
     type: DataTypes.INTEGER,
     allowNull: true
-  },
-  parent_id: {
-    type: DataTypes.INTEGER,
-    allowNull: true
   }
 }, {
   tableName: 'comments',
   timestamps: true,
-  underscored: true,
-  indexes: [
-    { fields: ['post_id'] },
-    { fields: ['status'] }
-  ]
+  underscored: true
 })
 
 module.exports = Comment

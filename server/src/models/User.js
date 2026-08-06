@@ -35,11 +35,10 @@ const User = sequelize.define('User', {
   },
   avatar: {
     type: DataTypes.STRING(255),
-    allowNull: true,
-    defaultValue: '/images/default-avatar.png'
+    allowNull: true
   },
   bio: {
-    type: DataTypes.STRING(500),
+    type: DataTypes.TEXT,
     allowNull: true
   },
   nickname: {
@@ -51,8 +50,8 @@ const User = sequelize.define('User', {
     defaultValue: 'user'
   },
   status: {
-    type: DataTypes.ENUM('active', 'disabled'),
-    defaultValue: 'active'
+    type: DataTypes.TINYINT,
+    defaultValue: 1
   }
 }, {
   tableName: 'users',

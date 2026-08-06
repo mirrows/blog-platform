@@ -1,0 +1,19 @@
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# 安装依赖（使用国内镜像源）
+COPY client/package*.json ./
+RUN npm install --registry=https://registry.npmmirror.com
+
+# 复制源码
+COPY client/ ./
+
+# 构建 SSG 静态文件
+# API_BASE_URL 用于指定前端访问后端的 API 地址（注意：nuxt.config.ts 会自动追加 /api，此处不要带 /api）
+ARG API_BASE_URL=http://localhost:8076
+ENV API_BASE_URL=$API_BASE_URL
+RUN npm run generate
+
+# 输出目录为 /app/.output/public
+# 构建完成后，卷挂载到该目录供 nginx 使用

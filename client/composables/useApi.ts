@@ -47,7 +47,7 @@ export const useApi = () => {
 
     try {
       const res = await $fetch(fullUrl, {
-        method: options.method || 'GET',
+        method: (options.method || 'GET') as 'GET',
         body: options.body,
         headers,
       })
@@ -55,6 +55,16 @@ export const useApi = () => {
       return res as any
     } catch (err: any) {
       console.error('Request Error:', err)
+
+      // // 401 未授权：清除本地 token 并跳转登录页
+      // if (err?.response?.status === 401 && process.client) {
+      //   localStorage.removeItem('token')
+      //   localStorage.removeItem('user')
+      //   if (window.location.pathname !== '/login') {
+      //     window.location.href = '/login'
+      //   }
+      // }
+
       return {
         code: err?.response?.status || 500,
         message: err?.data?.message || err.message || '请求失败',

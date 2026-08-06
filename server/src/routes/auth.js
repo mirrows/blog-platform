@@ -38,7 +38,7 @@ router.post('/register', async (ctx) => {
     password,
     nickname: xss(username),
     role: 'user',
-    status: 'active'
+    status: 1
   })
 
   ctx.body = success(user.toPublicJSON(), '注册成功')
@@ -67,7 +67,7 @@ router.post('/login', async (ctx) => {
     return
   }
 
-  if (user.status === 'disabled') {
+  if (user.status === 0) {
     ctx.body = fail('账号已被禁用，请联系管理员')
     return
   }

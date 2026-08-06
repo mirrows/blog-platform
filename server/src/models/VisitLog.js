@@ -3,7 +3,7 @@ const sequelize = require('../config/database')
 
 const VisitLog = sequelize.define('VisitLog', {
   id: {
-    type: DataTypes.BIGINT,
+    type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true
   },
@@ -11,26 +11,22 @@ const VisitLog = sequelize.define('VisitLog', {
     type: DataTypes.STRING(45),
     allowNull: false
   },
-  page_url: {
-    type: DataTypes.STRING(500),
-    allowNull: false
-  },
   user_agent: {
-    type: DataTypes.STRING(500),
+    type: DataTypes.STRING(255),
     allowNull: true
   },
-  visit_date: {
-    type: DataTypes.DATEONLY,
-    allowNull: false
+  referer: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  post_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true
   }
 }, {
   tableName: 'visit_logs',
   timestamps: true,
-  underscored: true,
-  indexes: [
-    { fields: ['visit_date'] },
-    { fields: ['ip_address'] }
-  ]
+  underscored: true
 })
 
 module.exports = VisitLog

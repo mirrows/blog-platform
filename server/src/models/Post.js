@@ -8,22 +8,27 @@ const Post = sequelize.define('Post', {
     autoIncrement: true
   },
   title: {
-    type: DataTypes.STRING(200),
+    type: DataTypes.STRING(255),
     allowNull: false,
     validate: {
       notEmpty: { msg: '标题不能为空' },
-      len: [1, 200]
+      len: [1, 255]
     }
   },
+  slug: {
+    type: DataTypes.STRING(255),
+    allowNull: false,
+    unique: true
+  },
   content: {
-    type: DataTypes.TEXT('long'),
+    type: DataTypes.TEXT,
     allowNull: false,
     validate: {
       notEmpty: { msg: '内容不能为空' }
     }
   },
   summary: {
-    type: DataTypes.STRING(500),
+    type: DataTypes.TEXT,
     allowNull: true
   },
   cover_image: {
@@ -31,8 +36,12 @@ const Post = sequelize.define('Post', {
     allowNull: true
   },
   status: {
-    type: DataTypes.ENUM('draft', 'published'),
+    type: DataTypes.ENUM('draft', 'published', 'archived'),
     defaultValue: 'draft'
+  },
+  is_top: {
+    type: DataTypes.TINYINT,
+    defaultValue: 0
   },
   view_count: {
     type: DataTypes.INTEGER,
@@ -42,21 +51,17 @@ const Post = sequelize.define('Post', {
     type: DataTypes.INTEGER,
     defaultValue: 0
   },
-  favorite_count: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0
-  },
   comment_count: {
     type: DataTypes.INTEGER,
     defaultValue: 0
   },
-  category_id: {
-    type: DataTypes.INTEGER,
-    allowNull: true
-  },
   author_id: {
     type: DataTypes.INTEGER,
     allowNull: false
+  },
+  category_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true
   },
   published_at: {
     type: DataTypes.DATE,
@@ -65,13 +70,7 @@ const Post = sequelize.define('Post', {
 }, {
   tableName: 'posts',
   timestamps: true,
-  underscored: true,
-  indexes: [
-    { fields: ['status'] },
-    { fields: ['published_at'] },
-    { fields: ['category_id'] },
-    { fields: ['author_id'] }
-  ]
+  underscored: true
 })
 
 module.exports = Post
