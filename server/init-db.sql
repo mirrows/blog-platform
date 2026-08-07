@@ -111,6 +111,7 @@ CREATE TABLE IF NOT EXISTS `likes` (
   `user_id` INT UNSIGNED NOT NULL,
   `post_id` INT UNSIGNED NOT NULL,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY `uk_user_post` (`user_id`, `post_id`),
   INDEX `idx_post` (`post_id`),
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
@@ -123,6 +124,7 @@ CREATE TABLE IF NOT EXISTS `favorites` (
   `user_id` INT UNSIGNED NOT NULL,
   `post_id` INT UNSIGNED NOT NULL,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY `uk_user_post` (`user_id`, `post_id`),
   INDEX `idx_post` (`post_id`),
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
@@ -199,4 +201,14 @@ INSERT INTO `tags` (`name`, `slug`, `created_at`, `updated_at`) VALUES
 ('Node.js', 'nodejs', NOW(), NOW()),
 ('生活感悟', 'life', NOW(), NOW())
 ON DUPLICATE KEY UPDATE `name` = `name`;
+
+-- 为已存在的 likes 表添加 updated_at 列（兼容旧数据库）
+ALTER TABLE `likes`
+ADD COLUMN `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+AFTER `created_at`;
+
+-- 为已存在的 favorites 表添加 updated_at 列（兼容旧数据库）
+ALTER TABLE `favorites`
+ADD COLUMN `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+AFTER `created_at`;
 

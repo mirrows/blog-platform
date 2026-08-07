@@ -26,8 +26,17 @@ async function initDatabase() {
     const sql = fs.readFileSync(sqlPath, 'utf8')
 
     // 执行 SQL（支持多语句，保留注释）
-    await connection.query(sql)
-    console.log('✅ 数据库和表结构创建成功')
+    try {
+      await connection.query(sql)
+      console.log('✅ 数据库和表结构创建成功')
+    } catch (error) {
+      // 忽略列已存在的错误（兼容旧数据库）
+      if (error.code === 'ER_COLUMN_EXISTS' || error.message.includes('Duplicate column name')) {
+        console.log('⚠️  数据库表已存在，跳过创建步骤')
+      } else {
+        throw error
+      }
+    }
 
     // 检查是否需要创建或更新默认管理员账号
     const [adminUsers] = await connection.query('SELECT * FROM users WHERE username = ?', [

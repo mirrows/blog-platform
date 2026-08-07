@@ -1,24 +1,22 @@
 <template>
-  <!-- <div>
+  <div>
     <ClientOnly>
-      <div v-if="ready"> -->
-        <Suspense>
-          <template #fallback>
-            <div class="internal-loading" :style="{height}">模块加载中...</div>
-          </template>
-          <MdEditor
-            :style="{height}"
-            :model-value="modelValue"
-            @update:model-value="handleUpdate"
-            :theme="theme"
-            :preview="preview"
-            :toolbars="toolbars"
-            @upload-img="handleUploadImg"
-          />
-        </Suspense>
-      <!-- </div>
+      <Suspense>
+        <template #fallback>
+          <div class="internal-loading" :style="{height}">编辑器加载中...</div>
+        </template>
+        <MdEditor
+          :style="{height}"
+          :model-value="modelValue"
+          @update:model-value="handleUpdate"
+          :theme="theme"
+          :preview="preview"
+          :toolbars="toolbars"
+          @upload-img="handleUploadImg"
+        />
+      </Suspense>
     </ClientOnly>
-  </div> -->
+  </div>
 </template>
 
 <script setup lang="ts">

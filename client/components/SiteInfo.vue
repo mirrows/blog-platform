@@ -20,12 +20,22 @@
       <span class="label">IP位置：</span>
       <span class="value">{{ location || '获取中...' }}</span>
     </div>
+    <div class="info-item">
+      <el-icon><User /></el-icon>
+      <span class="label">在线人数：</span>
+      <span class="value">{{ onlineCount }} 人</span>
+    </div>
+    <div class="info-item">
+      <el-icon><DataLine /></el-icon>
+      <span class="label">月访问量：</span>
+      <span class="value">{{ monthVisits }} 次</span>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Clock, Timer, Monitor, Location } from '@element-plus/icons-vue'
-const { currentTime, visitDuration, ip, location } = useSiteInfo()
+import { Clock, Timer, Monitor, Location, User, DataLine } from '@element-plus/icons-vue'
+const { currentTime, visitDuration, ip, location, onlineCount, monthVisits } = useSiteInfo()
 </script>
 
 <style scoped lang="scss">

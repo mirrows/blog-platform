@@ -1,11 +1,13 @@
 /**
- * 首页实时信息：时间、访问时长、IP定位
+ * 首页实时信息：时间、访问时长、IP定位、数据统计
  */
 export const useSiteInfo = () => {
   const currentTime = ref('')
   const visitDuration = ref('0小时0分0秒')
   const ip = ref('')
   const location = ref('')
+  const onlineCount = ref(0)
+  const monthVisits = ref(0)
 
   // 更新实时时间
   const updateTime = () => {
@@ -47,8 +49,28 @@ export const useSiteInfo = () => {
     }
   }
 
+  // 获取数据统计（在线人数、月访问量）
+  const fetchStats = async () => {
+    try {
+      const api = useApi()
+      const res = await api.get<{
+        onlineCount: number
+        monthVisits: number
+        todayVisits: number
+        totalVisits: number
+      }>('/stats/overview')
+      if (res.code === 200 && res.data) {
+        onlineCount.value = res.data.onlineCount
+        monthVisits.value = res.data.monthVisits
+      }
+    } catch (err) {
+      console.error('获取统计数据失败:', err)
+    }
+  }
+
   // 启动定时器
   let timeTimer: ReturnType<typeof setInterval>
+  let statsTimer: ReturnType<typeof setInterval>
 
   const start = () => {
     if (process.client) {
@@ -63,16 +85,23 @@ export const useSiteInfo = () => {
     updateTime()
     updateDuration()
     fetchIpInfo()
+    fetchStats()
 
-    // 只需要一个定时器更新时间和时长
+    // 更新时间和访问时长
     timeTimer = setInterval(() => {
       updateTime()
       updateDuration()
     }, 1000)
+
+    // 每 30 秒更新一次统计数据
+    statsTimer = setInterval(() => {
+      fetchStats()
+    }, 30000)
   }
 
   const stop = () => {
     if (timeTimer) clearInterval(timeTimer)
+    if (statsTimer) clearInterval(statsTimer)
   }
 
   onMounted(() => {
@@ -88,5 +117,7 @@ export const useSiteInfo = () => {
     visitDuration,
     ip,
     location,
+    onlineCount,
+    monthVisits,
   }
 }

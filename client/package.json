@@ -15,7 +15,9 @@
     "@pinia/nuxt": "^0.11.3",
     "@vueuse/core": "^14.3.0",
     "element-plus": "^2.14.2",
+    "html2canvas": "^1.4.1",
     "md-editor-v3": "^6.5.3",
+
     "nuxt": "^4.4.8",
     "pinia": "^3.0.4",
     "sass": "^1.69.0",

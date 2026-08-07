@@ -9,6 +9,7 @@
         <nuxt-link to="/" class="nav-link">首页</nuxt-link>
         <nuxt-link to="/archive" class="nav-link">归档</nuxt-link>
         <nuxt-link to="/about" class="nav-link">关于</nuxt-link>
+        <a :href="`${config?.public?.backend}/api/rss`" class="nav-link" target="_blank">RSS</a>
       </nav>
 
       <div class="header-actions">
@@ -26,6 +27,9 @@
               <el-dropdown-menu>
                 <el-dropdown-item v-if="auth.isAdmin.value" @click="navigateTo('/admin')">
                   后台管理
+                </el-dropdown-item>
+                <el-dropdown-item @click="navigateTo('/favorites')">
+                  我的收藏
                 </el-dropdown-item>
                 <el-dropdown-item @click="auth.logout()">退出登录</el-dropdown-item>
               </el-dropdown-menu>
@@ -45,12 +49,8 @@
 import { Moon, ArrowDown } from '@element-plus/icons-vue'
 
 const auth = useAuth()
-
-const toggleTheme = () => {
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
-  document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark')
-  document.documentElement.classList.toggle('dark', !isDark)
-}
+const { toggleTheme } = useTheme()
+const config = useRuntimeConfig()
 </script>
 
 <style scoped lang="scss">

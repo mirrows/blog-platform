@@ -47,7 +47,7 @@ export const useApi = () => {
 
     try {
       const res = await $fetch(fullUrl, {
-        method: (options.method || 'GET') as 'GET',
+        method: (options.method || 'GET') as 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
         body: options.body,
         headers,
       })
