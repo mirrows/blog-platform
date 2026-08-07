@@ -37,18 +37,20 @@ Post.belongsTo(Category, { foreignKey: 'category_id', as: 'category' })
 const PostTag = sequelize.define('PostTag', {}, {
   tableName: 'post_tags',
   timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
   underscored: true
 })
 
 Post.belongsToMany(Tag, {
-  through: 'post_tags',
+  through: PostTag,
   foreignKey: 'post_id',
   otherKey: 'tag_id',
   as: 'tags'
 })
 
 Tag.belongsToMany(Post, {
-  through: 'post_tags',
+  through: PostTag,
   foreignKey: 'tag_id',
   otherKey: 'post_id',
   as: 'posts'

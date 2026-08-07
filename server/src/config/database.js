@@ -11,6 +11,8 @@ const sequelize = new Sequelize(
     dialect: 'mysql',
     logging: false,
     timezone: config.database.timezone,
+    charset: 'utf8mb4',
+    collate: 'utf8mb4_unicode_ci',
     define: {
       timestamps: true,
       underscored: false,

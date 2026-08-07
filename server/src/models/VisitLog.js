@@ -11,13 +11,17 @@ const VisitLog = sequelize.define('VisitLog', {
     type: DataTypes.STRING(45),
     allowNull: false
   },
+  page_url: {
+    type: DataTypes.STRING(500),
+    allowNull: false
+  },
   user_agent: {
-    type: DataTypes.STRING(255),
+    type: DataTypes.STRING(500),
     allowNull: true
   },
-  referer: {
-    type: DataTypes.STRING(255),
-    allowNull: true
+  visit_date: {
+    type: DataTypes.DATEONLY,
+    allowNull: false
   },
   post_id: {
     type: DataTypes.INTEGER,

@@ -50,8 +50,8 @@ const User = sequelize.define('User', {
     defaultValue: 'user'
   },
   status: {
-    type: DataTypes.TINYINT,
-    defaultValue: 1
+    type: DataTypes.ENUM('active', 'disabled'),
+    defaultValue: 'active'
   }
 }, {
   tableName: 'users',

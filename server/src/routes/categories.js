@@ -8,39 +8,87 @@ const xss = require('xss')
 const router = new Router({ prefix: '/api' })
 
 // 获取所有分类（公开）
-router.get('/categories', async (ctx) => {
-  const categories = await Category.findAll({
-    order: [['sort_order', 'ASC'], ['name', 'ASC']],
-    attributes: {
-      include: [
-        [sequelize.literal(`(
-          SELECT COUNT(*) FROM posts
-          WHERE posts.category_id = Category.id
-          AND posts.status = 'published'
-        )`), 'post_count']
-      ]
-    }
-  })
+  router.get('/categories', async (ctx) => {
+    const categories = await Category.findAll({
+      order: [['sort_order', 'ASC'], ['name', 'ASC']],
+      attributes: {
+        include: [
+          [sequelize.literal(`(
+            SELECT COUNT(*) FROM posts
+            WHERE posts.category_id = Category.id
+            AND posts.status = 'published'
+          )`), 'post_count']
+        ]
+      }
+    })
 
-  ctx.body = success(categories)
-})
+    ctx.body = success(categories)
+  })
 
 // 管理员：获取所有分类
 router.get('/admin/categories', authMiddleware(), adminMiddleware, async (ctx) => {
-  const categories = await Category.findAll({
-    order: [['sort_order', 'ASC']],
-    attributes: {
-      include: [
-        [sequelize.literal(`(
-          SELECT COUNT(*) FROM posts
-          WHERE posts.category_id = Category.id
-        )`), 'post_count']
-      ]
-    }
-  })
+  console.log('[categories] ====== 开始处理请求 ======');
 
-  ctx.body = success(categories)
-})
+  try {
+    // 先测试最简单的查询
+    console.log('[categories] 步骤1: 执行基础查询...');
+    const categories = await Category.findAll({
+      order: [['sort_order', 'ASC']]
+    });
+    console.log('[categories] 基础查询成功，数量:', categories.length);
+
+    // 再测试带子查询的版本
+    console.log('[categories] 步骤2: 执行带子查询的查询...');
+    const categoriesWithCount = await Category.findAll({
+      order: [['sort_order', 'ASC']],
+      attributes: {
+        include: [
+          [sequelize.literal(`(
+            SELECT COUNT(*) FROM posts
+            WHERE posts.category_id = Category.id
+          )`), 'post_count']
+        ]
+      }
+    });
+    console.log('[categories] 完整查询成功，数量:', categoriesWithCount.length);
+
+    ctx.body = success(categoriesWithCount);
+
+  } catch (error) {
+    console.error('[categories] ====== 错误详情 ======');
+    console.error('[categories] 错误名称:', error.name);
+    console.error('[categories] 错误消息:', error.message);
+    console.error('[categories] 错误栈:', error.stack);
+
+    // 如果是Sequelize错误，打印SQL
+    if (error.sql) {
+      console.error('[categories] 失败的SQL:', error.sql);
+    }
+
+    ctx.status = 500;
+    ctx.body = {
+      code: 500,
+      message: '数据库查询失败',
+      error: error.message,
+      detail: error.sql || '无SQL详情'
+    };
+  }
+});
+// router.get('/admin/categories', authMiddleware(), adminMiddleware, async (ctx) => {
+//   const categories = await Category.findAll({
+//     order: [['sort_order', 'ASC']],
+//     attributes: {
+//       include: [
+//         [sequelize.literal(`(
+//           SELECT COUNT(*) FROM posts
+//           WHERE posts.category_id = categories.id
+//         )`), 'post_count']
+//       ]
+//     }
+//   })
+
+//   ctx.body = success(categories)
+// })
 
 // 管理员：创建分类
 router.post('/admin/categories', authMiddleware(), adminMiddleware, async (ctx) => {

@@ -26,6 +26,10 @@ const Category = sequelize.define('Category', {
   description: {
     type: DataTypes.TEXT,
     allowNull: true
+  },
+  sort_order: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
   }
 }, {
   tableName: 'categories',

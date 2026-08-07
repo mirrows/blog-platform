@@ -23,7 +23,7 @@ const Comment = sequelize.define('Comment', {
     allowNull: true
   },
   user_agent: {
-    type: DataTypes.STRING(255),
+    type: DataTypes.STRING(500),
     allowNull: true
   },
   status: {

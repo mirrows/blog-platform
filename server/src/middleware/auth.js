@@ -22,10 +22,10 @@ function authMiddleware(required = true) {
       return
     }
 
+    // 只验证 token，不捕获 next() 的错误
+    let decoded
     try {
-      const decoded = jwt.verify(token, config.jwt.secret)
-      ctx.state.user = decoded
-      await next()
+      decoded = jwt.verify(token, config.jwt.secret)
     } catch (err) {
       if (required) {
         ctx.status = 401
@@ -34,7 +34,12 @@ function authMiddleware(required = true) {
       }
       ctx.state.user = null
       await next()
+      return
     }
+
+    ctx.state.user = decoded
+    // next() 中的错误会继续向上传播到 errorHandler，不会被误判为 401
+    await next()
   }
 }
 
@@ -42,6 +47,10 @@ function authMiddleware(required = true) {
  * 管理员权限中间件
  */
 async function adminMiddleware(ctx, next) {
+  console.log('[adminMiddleware] 进入中间件');
+  console.log('[adminMiddleware] ctx.state.user:', ctx.state.user);
+  console.log('[adminMiddleware] ctx.state.user.role:', ctx.state.user?.role);
+  console.log('[adminMiddleware] 请求路径:', ctx.path);
   if (!ctx.state.user || ctx.state.user.role !== 'admin') {
     ctx.status = 403
     ctx.body = { code: 403, message: '无权限访问' }

@@ -32,6 +32,16 @@ async function errorHandler(ctx, next) {
       return
     }
 
+    // Sequelize 数据库错误（SQL 语法、字段缺失等）
+    if (err.name === 'SequelizeDatabaseError' || err.name === 'SequelizeConnectionError' || err.name === 'SequelizeTimeoutError') {
+      ctx.status = 500
+      ctx.body = {
+        code: 500,
+        message: `数据库错误: ${err.original?.message || err.message}`
+      }
+      return
+    }
+
     // JWT 错误
     if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
       ctx.status = 401
@@ -42,10 +52,11 @@ async function errorHandler(ctx, next) {
       return
     }
 
-    // 自定义错误
-    ctx.status = err.status || 500
+    // 自定义错误（确保不会误判为 401）
+    const status = err.status && err.status !== 401 ? err.status : 500
+    ctx.status = status
     ctx.body = {
-      code: err.status || 500,
+      code: status,
       message: err.message || '服务器内部错误'
     }
   }

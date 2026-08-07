@@ -17,11 +17,11 @@ const Post = sequelize.define('Post', {
   },
   slug: {
     type: DataTypes.STRING(255),
-    allowNull: false,
+    allowNull: true,
     unique: true
   },
   content: {
-    type: DataTypes.TEXT,
+    type: DataTypes.TEXT('long'),
     allowNull: false,
     validate: {
       notEmpty: { msg: '内容不能为空' }
@@ -52,6 +52,10 @@ const Post = sequelize.define('Post', {
     defaultValue: 0
   },
   comment_count: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  favorite_count: {
     type: DataTypes.INTEGER,
     defaultValue: 0
   },

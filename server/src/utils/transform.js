@@ -32,6 +32,11 @@ function toPlainObject(obj) {
  * @returns {*} 转换后的对象
  */
 function transformKeys(obj, callback) {
+  // 处理 Date 对象，直接返回 ISO 字符串
+  if (obj instanceof Date) {
+    return obj.toISOString()
+  }
+
   // 处理数组
   if (Array.isArray(obj)) {
     return obj.map(item => transformKeys(item, callback))
