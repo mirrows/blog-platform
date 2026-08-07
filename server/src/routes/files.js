@@ -65,6 +65,9 @@ router.post('/files/upload', authMiddleware(), adminMiddleware, async (ctx) => {
 
   // 检查总存储空间
   const uploadDir = path.join(__dirname, '../../uploads')
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true })
+  }
   const totalSize = await getDirectorySize(uploadDir)
   if (totalSize + file.size > config.upload.maxStorageSize) {
     fs.unlinkSync(file.filepath)
@@ -86,8 +89,9 @@ router.post('/files/upload', authMiddleware(), adminMiddleware, async (ctx) => {
   const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`
   const targetPath = path.join(targetDir, filename)
 
-  // 移动文件
-  fs.renameSync(file.filepath, targetPath)
+  // 移动文件（用 copyFileSync + unlinkSync 替代 renameSync，规避跨文件系统/overlay 层 rename 失败）
+  fs.copyFileSync(file.filepath, targetPath)
+  fs.unlinkSync(file.filepath)
 
   // 保存文件记录
   const fileRecord = await File.create({

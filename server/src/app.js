@@ -10,6 +10,13 @@ const app = new Koa()
 const config = require('./config')
 const errorHandler = require('./middleware/errorHandler')
 const rateLimiter = require('./middleware/rateLimiter')
+const fs = require('fs')
+
+// 确保上传目录存在
+const uploadDir = path.join(__dirname, '../uploads')
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true })
+}
 
 // ============================================
 // 中间件注册（顺序重要）
@@ -34,7 +41,7 @@ app.use(koaBody({
   multipart: true,
   formidable: {
     maxFileSize: config.upload.maxFileSize,
-    uploadDir: path.join(__dirname, '../uploads'),
+    uploadDir,
     keepExtensions: true
   },
   jsonLimit: '10mb',

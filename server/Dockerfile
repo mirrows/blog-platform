@@ -15,7 +15,7 @@ COPY scripts/ ./scripts/
 COPY init-db.sql ./
 
 # 创建上传目录
-RUN mkdir -p src/uploads
+RUN mkdir -p uploads
 
 # 复制并设置 entrypoint 脚本
 COPY docker-entrypoint.sh /usr/local/bin/

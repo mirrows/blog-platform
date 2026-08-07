@@ -73,7 +73,7 @@ services:
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
       - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@example.com}
     volumes:
-      - ./server/uploads:/app/src/uploads
+      - ./server/uploads:/app/uploads
     ports:
       - "5000:3000"
     depends_on:
